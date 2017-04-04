@@ -1,24 +1,5 @@
 // game.js for Perlenspiel 3.2.x
 
-/*
-Perlenspiel is a scheme by Professor Moriarty (bmoriarty@wpi.edu).
-Perlenspiel is Copyright © 2009-17 Worcester Polytechnic Institute.
-This file is part of Perlenspiel.
-
-Perlenspiel is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published
-by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Perlenspiel is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Lesser General Public License for more details.
-
-You may have received a copy of the GNU Lesser General Public License
-along with Perlenspiel. If not, see <http://www.gnu.org/licenses/>.
-*/
-
 // The "use strict" directive in the following line is important. Don't remove it!
 "use strict";
 
@@ -33,8 +14,13 @@ var BORDER = 1;
 var MOUSE_LOC = [-1,-1];
 var LEFT = 1005, UP = 1006, RIGHT = 1007, DOWN = 1008;
 var grid = [];
-var randnum = PS.random(4);
 var current = 0;
+var waitCounter = 0;
+var loadLevel = false;
+var thisLevelTicks = 0;
+var totalTicks = 0;
+var numMoves = 0;
+var showing = "level";
 
 var grid1 = [["b","b","b","b","b","b","b","b","b","b"],
 			 ["b"," ","s","w"," "," ","w"," "," ","b"],
@@ -82,60 +68,144 @@ var grid4 = [["b","b","b","b","b","b","b","b","b","b"],
 
 var grids = [grid1, grid2, grid3, grid4];
 
-if (randnum === 1)
-{
-	grid = grid1;
-}
-else if(randnum === 2)
-{
-	grid = grid2;
-}
-else if(randnum === 3)
-{
-	grid = grid3;
-}
-else if(randnum === 4)
-{
-	grid = grid4;
-}
 
 function BLOCK(x, y){
 
 	this.x = x;
 	this.y = y;
+	this.move = [0,0];
 	
 
 	this.draw = function(){
 		PS.color(this.x, this.y, 40, 210, 49);
 		PS.radius(this.x, this.y, 13);
+		if(this.move[0] == 0 && this.move[1] == 0)
+		{
+			if(grid[this.x-1][this.y] == ' ' || grid[this.x-1][this.y] == 'g')
+			{
+				if(this.x-1 == MOUSE_LOC[0] && this.y == MOUSE_LOC[1])
+				{
+					PS.glyphColor ( this.x-1, this.y, 150, 150, 40 );
+				}
+				PS.glyph(this.x-1, this.y, '↞');
+
+			}
+			if(grid[this.x+1][this.y] == ' ' || grid[this.x+1][this.y] == 'g')
+			{
+				if(this.x+1 == MOUSE_LOC[0] && this.y == MOUSE_LOC[1])
+				{
+					PS.glyphColor ( this.x+1, this.y, 150, 150, 40 );
+				}
+				PS.glyph(this.x+1, this.y, '↠');
+
+			}
+			if(grid[this.x][this.y+1] == ' ' || grid[this.x][this.y+1] == 'g')
+			{
+				if(this.x == MOUSE_LOC[0] && this.y+1 == MOUSE_LOC[1])
+				{
+					PS.glyphColor ( this.x, this.y+1, 150, 150, 40 );
+				}
+				PS.glyph(this.x, this.y+1, '↡');
+
+			}
+			if(grid[this.x][this.y-1] == ' ' || grid[this.x][this.y-1] == 'g')
+			{
+				if(this.x == MOUSE_LOC[0] && this.y-1 == MOUSE_LOC[1])
+				{
+					PS.glyphColor ( this.x, this.y-1, 150, 150, 40 );
+				}
+				PS.glyph(this.x, this.y-1, '↟');
+			}
+		}
 	}
-	this.move = function(input){
-		if(input == LEFT)
+	this.setXY = function(x, y){
+		this.x = x;
+		this.y = y;
+	}
+	this.input = function(input){
+		if(this.move[0] == 0 && this.move[1] == 0)
 		{
-			var newLoc = getLocation(this.x, this.y, -1, 0);
-			this.x = newLoc[0];
-			this.y = newLoc[1];
+			if(input == LEFT)
+			{
+				numMoves++;
+				this.move = [-1, 0];
+			}
+			else if(input == RIGHT)
+			{
+				numMoves++;
+				this.move = [1, 0];
+			}
+			else if(input == UP)
+			{
+				numMoves++;
+				this.move = [0, -1];
+			}
+			else if(input == DOWN)
+			{
+				numMoves++;
+				this.move = [0, 1];
+			}
+			else if(input === PS.KEY_ENTER || input === PS.KEY_S)
+			{
+				thisLevelTicks = 0;
+				initializeGrid();
+			}
+			else
+			{
+				PS.statusText("Use Arrow Keys to Move!");
+			}
 		}
-		else if(input == RIGHT)
+		
+	}
+	this.mouseInput = function(x, y){
+		if(this.move[0] == 0 && this.move[1] == 0)
 		{
-			var newLoc = getLocation(this.x, this.y, 1, 0);
-			this.x = newLoc[0];
-			this.y = newLoc[1];
+			if(this.x-1 == x && this.y ==y)
+			{
+				numMoves++;
+				this.move = [-1, 0];
+			}
+			else if(this.x+1 == x && this.y ==y)
+			{
+				numMoves++;
+				this.move = [1, 0];
+			}
+			else if(this.x == x && this.y-1 ==y)
+			{
+				numMoves++;
+				this.move = [0, -1];
+			}
+			else if(this.x == x && this.y+1 ==y)
+			{
+				numMoves++;
+				this.move = [0, 1];
+			}
+			else
+			{
+				PS.statusText("Use Arrow Keys to Move!");
+			}
 		}
-		else if(input == UP)
+		
+	}
+	this.onTick = function()
+	{
+		var nextSpot = grid[this.x+this.move[0]][this.y+this.move[1]]
+		if(nextSpot == ' ' || nextSpot == 's' || nextSpot == 't')
 		{
-			var newLoc = getLocation(this.x, this.y, 0, -1);
-			this.x = newLoc[0];
-			this.y = newLoc[1];
+			this.x += this.move[0];
+			this.y += this.move[1];
 		}
-		else if(input == DOWN)
+		else if(nextSpot == 'g')
 		{
-			var newLoc = getLocation(this.x, this.y, 0, 1);
-			this.x = newLoc[0];
-			this.y = newLoc[1];
-		}else if(input === PS.KEY_ENTER)
+			this.x += this.move[0];
+			this.y += this.move[1];
+			PS.statusText("Nice One!");
+			waitCounter = 15;
+			loadLevel = true;
+		}
+		else
 		{
-			initializeGrid();
+			this.move = [0, 0];
 		}
 	}
 }
@@ -147,19 +217,15 @@ function getLocation(x, y, dx, dy)
 	// console.log()
 	while(grid[newX+dx][newY+dy] == ' ' || grid[newX+dx][newY+dy] == 's')
 	{
-		console.log(newX, newY);
+		// console.log(newX, newY);
 		newX += dx;
 		newY += dy;
 	}
 	if(grid[newX+dx][newY+dy] == "g")
 	{
+		showing = "not";
 		PS.statusText("yay!")
-		if(grid.length > current+2){
-			current=current+1;
-		}
-		else{
-			current = 0;
-		}
+		current++;
 		initializeGrid();
 
 		return [newX+dx, newY+dy]
@@ -174,9 +240,12 @@ PS.init = function( system, options ) {
 	// the initial dimensions you want (32 x 32 maximum)
 	// Do this FIRST to avoid problems!
 	// Otherwise you will get the default 8x8 grid
+	
+	block = new BLOCK(4, 4);
+	grids = [generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap()];
 	initializeGrid();
 	PS.gridSize( SCREEN_X, SCREEN_Y );
-	PS.statusText("Use the arrow keys to move in the desired direction. Press enter if you want to reset the puzzle.");
+	// PS.statusText("Use the arrow keys to move in the desired direction. Press enter if you want to reset the puzzle.");
 	
 	drawScreen();
 	PS.timerStart ( 3, everyTick);
@@ -186,11 +255,19 @@ PS.init = function( system, options ) {
 };
 function initializeGrid()
 {
-	console.log(current);
+	showing = "level";
+	PS.statusText("Level " + (current + 1) + "    |    Score:" + getScore());
+	console.log("entering level " + current);
 	// grid = aGrid;
-	grid = grids[current];
+	if(current%10 == 0)
+	{
+		grids = [generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap()];
+		console.log("reset Levels")
+	}
+	grid = grids[current%10];
 	SCREEN_X = grid.length;
 	SCREEN_Y = grid[0].length;
+	PS.gridSize( SCREEN_X, SCREEN_Y );
 	// for(var)
 	var  r = 0;
 	for(r = 0; r < SCREEN_Y; r +=1)
@@ -201,15 +278,55 @@ function initializeGrid()
 			if(grid[c][r] == "s")
 			{
 				block = new BLOCK(c, r);
+				return;
 			}
 		}
 	}
+	block = new BLOCK(1, 1);
 
 }
 
-
+function getScore()
+{
+	var val = 1000-numMoves*20+current*500-totalTicks
+	if(val < 0)
+	{
+		return 0;
+	}
+	return val;
+}
 function everyTick()
 {
+	thisLevelTicks++;
+	
+	// console.log(thisLevelTicks);
+	if(thisLevelTicks%100 == 50){
+		showing = "level";
+		PS.statusText("Level " + (current + 1) + "    |    Score:" + getScore());
+	}
+	if(thisLevelTicks%300 == 299){
+		showing = "not";
+		PS.statusText("Press 'Enter' to reset level");
+	}
+	waitCounter--;
+	if(waitCounter < 0)
+	{
+		if(showing == "level")
+		{
+			PS.statusText("Level " + (current + 1) + "    |    Score:" + getScore());
+		}
+		totalTicks++;
+		if(loadLevel)
+		{	
+			thisLevelTicks = 0;
+			current++;
+			initializeGrid();
+			loadLevel = false;
+			block.move = [0, 0]
+		}
+		waitCounter = 0;
+		block.onTick();
+	}
 	drawScreen();
 
 }
@@ -223,6 +340,7 @@ function drawScreen()
 		for(c = 0; c < SCREEN_X; c +=1)
 		{
 			PS.glyph(c, r, " ");
+			PS.glyphColor ( c, r, 0, 0, 0 );
 			if(grid[c][r] == "b")
 			{
 				PS.color(c, r, 0, 0, 0);
@@ -231,29 +349,36 @@ function drawScreen()
 			}
 			else if(grid[c][r] == "w")
 			{
+				PS.border(c, r, 0);
 				PS.color(c, r, 59, 50, 10);
 			}
 			else if(grid[c][r] == "g")
 			{
+
 				PS.glyph(c, r, "G");
 				PS.color(c, r, 167, 249, 34);
 			}
 			else if(grid[c][r] == "s")
 			{
 				PS.glyph(c, r, "S");
-				PS.color(c, r, 167, 249, 34);
+				PS.border(c, r, 0);
+				// PS.color(c, r, 167, 249, 34);
+				PS.color(c, r, 255, 255, 255);
 			}
-			else if(c == MOUSE_LOC[0] && r == MOUSE_LOC[1])
+			else if(grid[c][r] == "t")
 			{
-				// PS.radius(c, r, 20);
-				// PS.color(c, r, 100, 10, 200);
-				// PS.bgColor(c, r, 3, 144, 255);
-
+				PS.border(c, r, 0);
+				PS.color(c, r, 234, 52, 124);
+			}
+			else if(grid[c][r] == " ")
+			{
+				PS.border(c, r, 0);
+				PS.color(c, r, 255, 255, 255);
 			}
 			else
 			{
 				PS.border(c, r, 0);
-				PS.color(c, r, 255, 255, 255);
+				PS.color(c, r, 150, 43, 152);
 			}
 			
 		}
@@ -287,6 +412,145 @@ function gridString()
 	return total;
 }
 
+
+
+function generateMap(){
+	var width = PS.random(10)+10;
+	var height = PS.random(10)+10;
+	var newGrid = new Array(width+2);
+	PS.gridSize(width+2, height+2);
+
+	for (var i = 0; i < width+2; i++) {
+	  newGrid[i] = new Array(height+2);
+	}
+	for(var x = 0; x < width+2;x++){
+		for(var y = 0; y < height+2; y++){
+			if(x == 0 || y == 0 || y == height+2-1 || x == width+2-1){
+				newGrid[x][y] = 'b';
+			}
+			else{
+				newGrid[x][y] = ' ';
+			}
+		}
+	}
+	var bug = [PS.random(width), PS.random(height)]
+	console.log(width + "," + height + ", " + bug)
+	var bugDir = [1, 0]
+	var start = [bug[0], bug[1]];
+	newGrid[bug[0]][bug[1]] = "s";
+
+	var num = Math.floor(width*height*10);
+	for(var i = 0; i < num; i++)
+	{
+		var oldDir = bugDir;
+		bugDir = getDirection(bugDir);//[0,1];//getPossibleDirection(bug[0], bug[1], newGrid);
+		var newX = bug[0] + bugDir[0];
+		var newY = bug[1] + bugDir[1];
+		if(newGrid[newX][newY] == 'b' || newGrid[newX][newY] == 'w' )
+		{
+			var newBugDir = turn(bugDir);
+			// if(!(bugDir[0] == newBugDir[0] && bugDir[1] == newBugDir[1])){
+			var wx = bug[0] + newBugDir[0];
+			var wy = bug[1] + newBugDir[1];
+			if(newGrid[wx][wy] !== " " && newGrid[wx][wy] !== "b" && newGrid[wx][wy] !== "t")
+			{
+				// PS.debug(wx + ", " + wy + "\n");
+				// PS.debug(i + ": " + "d");
+				if(newGrid[wx][wy] != "b" && newGrid[wx][wy] != "b")
+				{
+					newGrid[wx][wy] = "w";
+				}
+			}
+			bugDir = newBugDir;
+		}
+		else
+		{	
+			
+			
+			// if(newGrid[bug[0]][bug[1]] == "t")
+			// {
+			// 	bugDir = oldDir;
+			// }
+
+			if(oldDir != bugDir && newGrid[bug[0]+oldDir[0]][bug[1]+oldDir[1]] != "t")
+			{
+				if(newGrid[bug[0]+oldDir[0]][bug[1]+oldDir[1]] != "b" && newGrid[bug[0]+oldDir[0]][bug[1]+oldDir[1]] != "s")
+				{
+					newGrid[bug[0]+oldDir[0]][bug[1]+oldDir[1]] = "w";
+				}
+			}
+			else if (newGrid[bug[0]+oldDir[0]][bug[1]+oldDir[1]] == "t")
+			{
+				bugDir = oldDir;
+				newX = bug[0] + bugDir[0];
+				newY = bug[1] + bugDir[1];
+			}
+
+
+			bug = [newX, newY];
+
+
+			if(newGrid[newX][newY] != "s" )
+			{
+				// newGrid[newX][newY] = 't';
+				newGrid[newX][newY] = "t";
+			}
+			
+		}
+
+	}
+	newGrid[bug[0]][bug[1]] = "g";
+	newGrid[start[0]][start[1]] = "s";
+	
+	for(var x = 0; x < width+2;x++){
+		for(var y = 0; y < height+2; y++){
+			if(newGrid[x][y] == "t")
+			{
+				newGrid[x][y] = " ";
+			}
+		}
+	}
+
+	return newGrid;
+}
+
+function getPossibleDirection(x, y, grid)
+{
+	var dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+	var dir = dirs[PS.random(4)];
+	return dir;
+}
+function getDirection(dir)
+{
+	if(PS.random(4) <= 1)
+	{
+		dir = turn(dir);
+	}
+	return dir;
+
+}
+function turn(dir)
+{
+	if(PS.random(2) <=1)
+	{
+		dir = turnRight(dir[0], dir[1]);
+	}
+	else
+	{
+		dir = turnLeft(dir[0], dir[1]);
+	}
+	return dir;
+}
+
+function turnRight(dx, dy)
+{
+	return [-dy, dx];
+}
+function turnLeft(dx, dy)
+{
+	return [dy, -dx];
+}
+
 // PS.touch ( x, y, data, options )
 // Called when the mouse button is clicked on a bead, or when a bead is touched
 // It doesn't have to do anything
@@ -296,27 +560,7 @@ function gridString()
 // [options] = an object with optional parameters; see documentation for details
 
 PS.touch = function( x, y, data, options ) {
-	// Uncomment the following line to inspect parameters
-	// PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
-
-	// Add code here for mouse clicks/touches over a bead
-	// if(grid[x][y] == "w")
-	// {
-	// 	grid[x][y] = 'g';
-	// }
-	// else if(grid[x][y] == "g")
-	// {
-	// 	grid[x][y] = 's';
-	// }
-	// else if(grid[x][y] == "s")
-	// {
-	// 	grid[x][y] = ' ';
-	// }
-	// else if(grid[x][y] == " ")
-	// {
-	// 	grid[x][y] = 'w';
-	// }
-	// drawScreen();
+	block.mouseInput(x, y);
 
 };
 
@@ -387,7 +631,7 @@ PS.exitGrid = function( options ) {
 PS.keyDown = function( key, shift, ctrl, options ) {
 	// Uncomment the following line to inspect parameters
 	// PS.debug( "DOWN: key = " + key + ", shift = " + shift + "\n" );
-	block.move(key)
+	block.input(key)
 	// Add code here for when a key is pressed
 	// console.log(gridString());
 };
