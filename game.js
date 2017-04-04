@@ -153,6 +153,7 @@ function BLOCK(x, y){
 			else
 			{
 				PS.statusText("Use Arrow Keys to Move!");
+				waitCounter = 5;
 			}
 		}
 		
@@ -183,6 +184,7 @@ function BLOCK(x, y){
 			else
 			{
 				PS.statusText("Use Arrow Keys to Move!");
+				waitCounter = 5;
 			}
 		}
 		
