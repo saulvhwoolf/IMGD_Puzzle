@@ -77,7 +77,7 @@ function BLOCK(x, y){
 	
 
 	this.draw = function(){
-		PS.color(this.x, this.y, 40, 210, 49);
+		PS.color(this.x, this.y, 146, 57, 255);
 		PS.radius(this.x, this.y, 13);
 		if(this.move[0] == 0 && this.move[1] == 0)
 		{
@@ -343,27 +343,27 @@ function drawScreen()
 			PS.glyphColor ( c, r, 0, 0, 0 );
 			if(grid[c][r] == "b")
 			{
-				PS.color(c, r, 0, 0, 0);
+				PS.color(c, r, 52, 54, 232);
 				PS.border(c, r, 0 );
 
 			}
 			else if(grid[c][r] == "w")
 			{
 				PS.border(c, r, 0);
-				PS.color(c, r, 59, 50, 10);
+				PS.color(c, r,70, 154, 255);
 			}
 			else if(grid[c][r] == "g")
 			{
 
 				PS.glyph(c, r, "G");
-				PS.color(c, r, 167, 249, 34);
+				PS.color(c, r, 25, 255, 170);
 			}
 			else if(grid[c][r] == "s")
 			{
 				PS.glyph(c, r, "S");
 				PS.border(c, r, 0);
 				// PS.color(c, r, 167, 249, 34);
-				PS.color(c, r, 255, 255, 255);
+				PS.color(c, r, 98, 217, 242);
 			}
 			else if(grid[c][r] == "t")
 			{
@@ -373,7 +373,7 @@ function drawScreen()
 			else if(grid[c][r] == " ")
 			{
 				PS.border(c, r, 0);
-				PS.color(c, r, 255, 255, 255);
+				PS.color(c, r, 98, 217, 242);
 			}
 			else
 			{
