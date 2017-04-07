@@ -24,7 +24,27 @@ var numMoves = 0;
 var showing = "level";
 var score = 0;
 var genLevel = 0;
+var numLevels = 15;
 
+var finalGrid = [[" ","w","w","w","w","w"," ","w"," "," ","w"," "," ","w","w"," "," ", "w"," "," "," ","w"," ","w"," "," ","w"," ","w","w","w"," "],
+				[" "," "," ","w"," "," "," ","w"," "," ","w"," ","w"," "," ","w"," ", "w","w"," "," ","w"," ","w"," ","w"," "," ","w"," "," "," "],
+				[" "," "," ","w"," "," "," ","w","w","w","w"," ","w","w","w","w"," ", "w"," ","w"," ","w"," ","w","w"," "," "," ","w","w","w"," "],
+				[" "," "," ","w"," "," "," ","w"," "," ","w"," ","w"," "," ","w"," ", "w"," "," ","w","w"," ","w"," ","w"," "," "," "," ","w"," "],
+				[" "," "," ","w"," "," "," ","w"," "," ","w"," ","w"," "," ","w"," ", "w"," "," "," ","w"," ","w"," "," ","w"," ","w","w","w"," "],
+				[" "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," ", " "," "," "," "," "," "," "," "," "," "," "," "," "," "," "],
+				[" "," "," "," "," "," "," "," "," "," ","w","w","w"," ","w","w","w", " ","w","w"," "," "," "," "," "," "," "," "," "," "," "," "],
+				[" "," "," "," "," "," "," "," "," "," ","w"," "," "," ","w","s","w", " ","w"," ","w"," "," "," "," "," "," "," "," "," "," "," "],
+				[" "," "," "," "," "," "," "," "," "," ","w","w"," "," ","w"," ","w", " ","w","w"," "," "," "," "," "," "," "," "," "," "," "," "],
+				[" "," "," "," "," "," "," "," "," "," ","w"," "," "," ","w"," ","w", " ","w"," ","w"," "," "," "," "," "," "," "," "," "," "," "],
+				[" "," "," "," "," "," "," "," "," "," ","w"," "," "," ","w","w","w", " ","w"," ","w"," "," "," "," "," "," "," "," "," "," "," "],
+				[" "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," ", " "," "," "," "," "," "," "," "," "," "," "," "," "," "," "],
+				[" ","w","w","w"," ","w"," "," ","w","w"," "," ","w"," ","w"," "," ", "w","w","w"," ","w"," "," "," ","w"," "," ","w","w","w"," "],
+				[" ","w"," ","w"," ","w"," ","w"," "," ","w"," ","w"," ","w"," "," ", " ","w"," "," ","w","w"," "," ","w"," ","w"," "," "," "," "],
+				[" ","w","w","w"," ","w"," ","w","w","w","w"," "," ","w"," "," "," ", " ","w"," "," ","w"," ","w"," ","w"," ","w"," ","w","w"," "],
+				[" ","w"," "," "," ","w"," ","w"," "," ","w"," "," ","w"," "," "," ", " ","w"," "," ","w"," "," ","w","w"," ","w"," "," ","w"," "],
+				[" ","w"," "," "," ","w"," ","w"," "," ","w"," "," ","w"," "," "," ", "w","w","w"," ","w"," "," "," ","w"," "," ","w","w","w"," "]];
+
+var realFinalGrid = finalGrid;
 var grid1 = [["b","b","b","b","b","b","b","b","b","b"],
 			 ["b"," ","s","w"," "," ","w"," "," ","b"],
 			 ["b"," ","w"," "," "," ","w"," "," ","b"],
@@ -217,7 +237,7 @@ function BLOCK(x, y){
 			PS.audioPlay("fx_tada");
 			waitCounter = 15;
 			loadLevel = true;
-			var newScore = 500-thisLevelTicks;
+			var newScore = Math.floor(100*(1-thisLevelScore));
 			if(newScore < 0){
 				newScore = 0;
 			}
@@ -260,7 +280,18 @@ PS.init = function( system, options ) {
 	// the initial dimensions you want (32 x 32 maximum)
 	// Do this FIRST to avoid problems!
 	// Otherwise you will get the default 8x8 grid
-	
+	realFinalGrid = [];
+	for(var x = 0; x < finalGrid[0].length; x++)
+	{
+		var thing = []
+		for(var y = 0; y < finalGrid.length; y++)
+		{
+			thing.push(finalGrid[y][x]);
+		}
+		realFinalGrid.push(thing);
+	}
+
+
 	block = new BLOCK(4, 4);
 	grids = [generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap(), generateMap()];
 	initializeGrid();
@@ -277,6 +308,7 @@ PS.init = function( system, options ) {
 };
 function initializeGrid()
 {
+	
 	showing = "level";
 	PS.statusText("Level " + (current + 1) + "    |    Score:" + getScore());
 	console.log("entering level " + current);
@@ -287,6 +319,10 @@ function initializeGrid()
 		console.log("reset Levels")
 	}
 	grid = grids[current%10];
+	if(current >= numLevels)
+	{
+		grid = realFinalGrid;
+	}
 	SCREEN_X = grid.length;
 	SCREEN_Y = grid[0].length;
 	PS.gridSize( SCREEN_X, SCREEN_Y );
@@ -356,6 +392,7 @@ function everyTick()
 }
 function drawScreen()
 {
+	PS.gridColor(98, 217, 242);
 	var  r = 0;
 	// console.log(MOUSE_LOC)
 	for(r = 0; r < SCREEN_Y; r +=1)
@@ -380,9 +417,13 @@ function drawScreen()
 			}
 			else if(grid[c][r] == "g")
 			{
+				var current = Math.abs(thisLevelTicks%10 - 5);
+				// console.log(current);
+				PS.radius(c, r, current*10);
+				PS.borderColor(c, r, 98, 217, 242);
 
 				PS.glyph(c, r, "G");
-				PS.color(c, r, 39, 229, 77);
+				PS.color(c, r, 19, 191, 127);
 			}
 			else if(grid[c][r] == "s")
 			{
@@ -409,13 +450,16 @@ function drawScreen()
 			
 		}
 	}
-	displayScore();
+	if(current < numLevels)
+	{
+		displayScore();
+	}
 	block.draw();
 	// for()
 }
 function displayScore()
 {
-	var rate = 2;
+	var rate = 3;
 	var boxes = SCREEN_X*2 + SCREEN_Y*2 -4;
 	var score = Math.floor(thisLevelTicks/rate);
 	thisLevelScore = score/boxes;
