@@ -18,9 +18,12 @@ var current = 0;
 var waitCounter = 0;
 var loadLevel = false;
 var thisLevelTicks = 0;
+var thisLevelScore = 0;
 var totalTicks = 0;
 var numMoves = 0;
 var showing = "level";
+var score = 0;
+var genLevel = 0;
 
 var grid1 = [["b","b","b","b","b","b","b","b","b","b"],
 			 ["b"," ","s","w"," "," ","w"," "," ","b"],
@@ -204,6 +207,11 @@ function BLOCK(x, y){
 			PS.statusText("Nice One!");
 			waitCounter = 15;
 			loadLevel = true;
+			var newScore = 500-thisLevelTicks;
+			if(newScore < 0){
+				newScore = 0;
+			}
+			score += newScore;
 		}
 		else
 		{
@@ -290,12 +298,14 @@ function initializeGrid()
 
 function getScore()
 {
-	var val = 1000-numMoves*20+current*500-totalTicks
-	if(val < 0)
-	{
-		return 0;
-	}
-	return val;
+	// var val = 1000-numMoves*20+current*500-totalTicks
+	// if(val < 0)
+	// {
+	// 	return 0;
+	// }
+	// return val;
+
+	return score;
 }
 function everyTick()
 {
@@ -343,10 +353,12 @@ function drawScreen()
 		{
 			PS.glyph(c, r, " ");
 			PS.glyphColor ( c, r, 0, 0, 0 );
+			PS.radius(c, r, 0);
 			if(grid[c][r] == "b")
 			{
-				PS.color(c, r, 52, 54, 232);
+				// PS.color(c, r, 52, 54, 232);
 				PS.border(c, r, 0 );
+				PS.color(c, r,70, 154, 255);
 
 			}
 			else if(grid[c][r] == "w")
@@ -385,9 +397,37 @@ function drawScreen()
 			
 		}
 	}
+	displayScore();
 	block.draw();
 	// for()
 }
+function displayScore()
+{
+	var rate = 2;
+	var boxes = SCREEN_X*2 + SCREEN_Y*2 -4;
+	var score = Math.floor(thisLevelTicks/rate);
+	thisLevelScore = score/boxes;
+	var remainder = thisLevelTicks%rate;
+	// console.log(score + "/" + boxes + ": " + SCREEN_X + ", " + SCREEN_Y);
+
+
+	for(var i = 0; i < score; i++){
+		if(i < SCREEN_X){
+			PS.color(i, 0, 110, 180, 255);
+		}
+		else if(i < SCREEN_X + SCREEN_Y -1){
+			PS.color(SCREEN_X-1, i-SCREEN_X, 110, 180, 255);
+		}
+		else if(i < SCREEN_X*2 + SCREEN_Y -2){
+			PS.color(SCREEN_X-(i-(SCREEN_X + SCREEN_Y - 2)), SCREEN_Y-1, 110, 180, 255);
+		}
+		else if(i < boxes+1){
+			PS.color(0, SCREEN_Y - (i-(SCREEN_X*2+SCREEN_Y-3)), 110, 180, 255);
+		}
+	}
+}
+
+
 function isBorder(c, r)
 {
 	if(r<BORDER || c < BORDER || c >=SCREEN_X-BORDER || r >= SCREEN_Y-BORDER )
@@ -416,9 +456,19 @@ function gridString()
 
 
 
+
+
 function generateMap(){
-	var width = PS.random(10)+10;
-	var height = PS.random(10)+10;
+
+	genLevel = genLevel + 1;
+	var width = genLevel ;
+	if(width > 30)
+	{
+		width = 30;
+	}
+	var height = width;
+	// var width = PS.random(10)+10;
+	// var height = PS.random(10)+10;
 	var newGrid = new Array(width+2);
 	PS.gridSize(width+2, height+2);
 
