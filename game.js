@@ -92,6 +92,7 @@ function BLOCK(x, y){
 				}
 				PS.glyph(this.x-1, this.y, '↞');
 
+				
 			}
 			if(grid[this.x+1][this.y] == ' ' || grid[this.x+1][this.y] == 'g')
 			{
@@ -132,21 +133,25 @@ function BLOCK(x, y){
 			{
 				numMoves++;
 				this.move = [-1, 0];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(input == RIGHT)
 			{
 				numMoves++;
 				this.move = [1, 0];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(input == UP)
 			{
 				numMoves++;
 				this.move = [0, -1];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(input == DOWN)
 			{
 				numMoves++;
 				this.move = [0, 1];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(input === PS.KEY_ENTER || input === PS.KEY_S)
 			{
@@ -168,21 +173,25 @@ function BLOCK(x, y){
 			{
 				numMoves++;
 				this.move = [-1, 0];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(this.x+1 == x && this.y ==y)
 			{
 				numMoves++;
 				this.move = [1, 0];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(this.x == x && this.y-1 ==y)
 			{
 				numMoves++;
 				this.move = [0, -1];
+				PS.audioPlay("fx_swoosh");
 			}
 			else if(this.x == x && this.y+1 ==y)
 			{
 				numMoves++;
 				this.move = [0, 1];
+				PS.audioPlay("fx_swoosh");
 			}
 			else
 			{
@@ -205,6 +214,7 @@ function BLOCK(x, y){
 			this.x += this.move[0];
 			this.y += this.move[1];
 			PS.statusText("Nice One!");
+			PS.audioPlay("fx_tada");
 			waitCounter = 15;
 			loadLevel = true;
 			var newScore = 500-thisLevelTicks;
@@ -259,7 +269,9 @@ PS.init = function( system, options ) {
 	
 	drawScreen();
 	PS.timerStart ( 3, everyTick);
-
+	
+	PS.audioLoad("fx_swoosh");
+    	PS.audioLoad("fx_tada");
 
 	// Add any other initialization code you need here
 };
@@ -370,7 +382,7 @@ function drawScreen()
 			{
 
 				PS.glyph(c, r, "G");
-				PS.color(c, r, 25, 255, 170);
+				PS.color(c, r, 39, 229, 77);
 			}
 			else if(grid[c][r] == "s")
 			{
